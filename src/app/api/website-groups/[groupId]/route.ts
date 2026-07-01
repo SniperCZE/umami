@@ -10,7 +10,6 @@ import {
 import {
   deleteWebsiteGroup,
   getWebsiteGroup,
-  getWebsiteGroupChildCount,
   updateWebsiteGroup,
 } from '@/queries/prisma/websiteGroup';
 
@@ -100,10 +99,10 @@ export async function DELETE(
     return unauthorized();
   }
 
-  const childCount = await getWebsiteGroupChildCount(groupId);
+  const group = await getWebsiteGroup(groupId);
 
-  if (childCount > 0) {
-    return badRequest({ message: 'Group is not empty.' });
+  if (!group) {
+    return badRequest({ message: 'Group not found.' });
   }
 
   await deleteWebsiteGroup(groupId);

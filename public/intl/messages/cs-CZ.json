@@ -397,7 +397,7 @@
     "confirm-reset": "Are your sure you want to reset {target}'s statistics?",
     "delete-team-warning": "Smazání týmu smaže také všechny weby týmu.",
     "delete-website-warning": "Všechna související data budou také smazána.",
-    "group-not-empty": "Skupinu lze smazat pouze pokud je prázdná.",
+    "delete-group-warning": "Podskupiny a weby uvnitř této skupiny se posunou o úroveň výše.",
     "error": "Něco se pokazilo.",
     "empty-dashboard": "Váš řídicí panel je prázdný. Klikněte na Upravit a přidejte první komponentu.",
     "event-log": "<b>{event}</b> na <a>{url}</a>",

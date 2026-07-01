@@ -115,16 +115,6 @@ test.describe('Website Group API tests', () => {
     expect(body).toHaveProperty('name', 'Playwright Group Updated');
   });
 
-  test('rejects deleting a non-empty group', async ({ request }) => {
-    const response = await request.delete(`/api/website-groups/${rootGroupId}`, {
-      headers: authHeaders(auth),
-    });
-    const body = await response.json();
-
-    expect(response.status()).toBe(400);
-    expect(body.error.message).toBe('Group is not empty.');
-  });
-
   test('rejects group cycle on update', async ({ request }) => {
     const response = await request.post(`/api/website-groups/${rootGroupId}`, {
       headers: authHeaders(auth),
@@ -136,18 +126,7 @@ test.describe('Website Group API tests', () => {
     expect(body.error.message).toBe('Group cannot be moved into its own descendant.');
   });
 
-  test('removes website from group', async ({ request }) => {
-    const response = await request.post(`/api/websites/${websiteId}`, {
-      headers: authHeaders(auth),
-      data: { groupId: null },
-    });
-    const body = await response.json();
-
-    expect(response.status()).toBe(200);
-    expect(body.groupId).toBeNull();
-  });
-
-  test('deletes empty child group', async ({ request }) => {
+  test('deletes nested group and moves website to parent group', async ({ request }) => {
     const response = await request.delete(`/api/website-groups/${childGroupId}`, {
       headers: authHeaders(auth),
     });
@@ -157,5 +136,47 @@ test.describe('Website Group API tests', () => {
 
     expect(response.status()).toBe(200);
     expect(body).toHaveProperty('ok', true);
+
+    const websiteResponse = await request.get(`/api/websites/${websiteId}`, {
+      headers: authHeaders(auth),
+    });
+    const website = await websiteResponse.json();
+
+    expect(website.groupId).toBe(rootGroupId);
+
+    const listResponse = await request.get('/api/me/websites', {
+      headers: authHeaders(auth),
+      params: { search: 'Grouped Website' },
+    });
+    const list = await listResponse.json();
+
+    expect(list.data[0]).toHaveProperty('groupPath', 'Playwright Group Updated');
+  });
+
+  test('deletes root group and moves website to root', async ({ request }) => {
+    const response = await request.delete(`/api/website-groups/${rootGroupId}`, {
+      headers: authHeaders(auth),
+    });
+    const body = await response.json();
+
+    rootGroupId = '';
+
+    expect(response.status()).toBe(200);
+    expect(body).toHaveProperty('ok', true);
+
+    const websiteResponse = await request.get(`/api/websites/${websiteId}`, {
+      headers: authHeaders(auth),
+    });
+    const website = await websiteResponse.json();
+
+    expect(website.groupId).toBeNull();
+
+    const listResponse = await request.get('/api/me/websites', {
+      headers: authHeaders(auth),
+      params: { search: 'Grouped Website' },
+    });
+    const list = await listResponse.json();
+
+    expect(list.data[0].groupPath).toBeNull();
   });
 });

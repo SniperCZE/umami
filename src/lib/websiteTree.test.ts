@@ -26,23 +26,48 @@ const websites = [
 ];
 
 describe('buildWebsiteTree', () => {
-  test('builds nested tree with alphabetical sibling ordering', () => {
+  test('builds nested tree with groups before websites at each level', () => {
     const tree = buildWebsiteTree(groups, websites);
 
     expect(tree).toHaveLength(3);
     expect(tree[0].type).toBe('group');
     expect(tree[0].name).toBe('Dalsi websites');
-    expect(tree[1].type).toBe('website');
-    expect(tree[1].name).toBe('muj blog');
-    expect(tree[2].type).toBe('group');
-    expect(tree[2].name).toBe('Muj projekt');
+    expect(tree[1].type).toBe('group');
+    expect(tree[1].name).toBe('Muj projekt');
+    expect(tree[2].type).toBe('website');
+    expect(tree[2].name).toBe('muj blog');
 
-    const project = tree[2];
+    const project = tree[1];
     expect(project.type).toBe('group');
     if (project.type === 'group') {
       expect(project.children).toHaveLength(2);
       expect(project.children[0].name).toBe('LAB');
       expect(project.children[1].name).toBe('PROD');
+    }
+  });
+
+  test('lists subgroups before websites within the same parent', () => {
+    const mixedGroups = [{ id: 'g1', name: 'Parent', parentId: null }];
+    const mixedWebsites = [
+      { id: 'w1', name: 'zebra site', groupId: 'g1' },
+      { id: 'w2', name: 'alpha site', groupId: 'g1' },
+    ];
+    const mixedSubgroups = [
+      { id: 'g2', name: 'Zulu', parentId: 'g1' },
+      { id: 'g3', name: 'Beta', parentId: 'g1' },
+    ];
+
+    const tree = buildWebsiteTree([...mixedGroups, ...mixedSubgroups], mixedWebsites);
+    const parent = tree[0];
+
+    expect(parent.type).toBe('group');
+    if (parent.type === 'group') {
+      expect(parent.children.map(node => node.name)).toEqual([
+        'Beta',
+        'Zulu',
+        'alpha site',
+        'zebra site',
+      ]);
     }
   });
 });
