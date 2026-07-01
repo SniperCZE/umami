@@ -9,60 +9,28 @@ import {
   useWebsiteTreeQuery,
 } from '@/components/hooks';
 import { Globe } from '@/components/icons';
-import { flattenTreeForSelect } from '@/lib/websiteTree';
+import { flattenTreeForSelect, buildGroupedSelectSections } from '@/lib/websiteTree';
 
 function renderGroupedSelectItems(tree: ReturnType<typeof flattenTreeForSelect>) {
-  const items: React.ReactNode[] = [];
-  const websites = tree.filter(item => item.type === 'website');
-
-  if (websites.length === 0) {
-    return items;
-  }
-
-  const groups = tree.filter(item => item.type === 'group');
-
-  if (groups.length === 0) {
-    return websites.map(item => (
-      <ListItem key={item.id} id={item.id}>
-        {item.label}
-      </ListItem>
-    ));
-  }
-
-  let currentGroup: string | null = null;
-  let sectionItems: React.ReactNode[] = [];
-
-  const flushSection = () => {
-    if (sectionItems.length > 0 && currentGroup !== null) {
-      items.push(
-        <ListSection key={currentGroup} title={currentGroup}>
-          {sectionItems}
-        </ListSection>,
+  return buildGroupedSelectSections(tree).map(entry => {
+    if (entry.type === 'website') {
+      return (
+        <ListItem key={entry.id} id={entry.id}>
+          {entry.label}
+        </ListItem>
       );
-      sectionItems = [];
     }
-  };
 
-  for (const item of tree) {
-    if (item.type === 'group') {
-      flushSection();
-      currentGroup = item.label;
-    } else if (item.type === 'website') {
-      if (currentGroup === null) {
-        items.push(
-          <ListItem key={item.id} id={item.id}>
-            {item.label}
-          </ListItem>,
-        );
-      } else {
-        sectionItems.push(<ListItem key={item.id} id={item.id}>{item.label}</ListItem>);
-      }
-    }
-  }
-
-  flushSection();
-
-  return items;
+    return (
+      <ListSection key={entry.title} title={entry.title}>
+        {entry.websites.map(website => (
+          <ListItem key={website.id} id={website.id}>
+            {website.label}
+          </ListItem>
+        ))}
+      </ListSection>
+    );
+  });
 }
 
 export function WebsiteSelect({
