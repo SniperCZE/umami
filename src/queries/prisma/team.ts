@@ -195,6 +195,7 @@ export async function deleteTeam(teamId: string) {
         where: { teamId, deletedAt: null },
       }),
       client.board.deleteMany({ where: { teamId } }),
+      client.websiteGroup.deleteMany({ where: { teamId } }),
     ]).then(async result => {
       await invalidateRedis();
       return result;
@@ -211,6 +212,7 @@ export async function deleteTeam(teamId: string) {
     client.link.deleteMany({ where: { teamId } }),
     client.pixel.deleteMany({ where: { teamId } }),
     client.board.deleteMany({ where: { teamId } }),
+    client.websiteGroup.deleteMany({ where: { teamId } }),
     client.team.delete({
       where: {
         id: teamId,
