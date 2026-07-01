@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   attachGroupPathToWebsites,
+  buildGroupedSelectSections,
   buildWebsiteTree,
   flattenGroupsForSelect,
   flattenTreeForSelect,
@@ -98,6 +99,70 @@ describe('flattenTreeForSelect', () => {
     expect(flat.some(item => item.id === 'g1' && item.depth === 0)).toBe(true);
     expect(flat.some(item => item.id === 'g2' && item.depth === 1)).toBe(true);
     expect(flat.some(item => item.id === 'w7' && item.depth === 0)).toBe(true);
+  });
+});
+
+describe('buildGroupedSelectSections', () => {
+  test('keeps root websites outside group sections after nested groups', () => {
+    const tree = buildWebsiteTree(groups, websites);
+    const flat = flattenTreeForSelect(tree);
+    const sections = buildGroupedSelectSections(flat);
+
+    expect(sections.find(entry => entry.type === 'website' && entry.id === 'w7')).toEqual({
+      type: 'website',
+      id: 'w7',
+      label: 'muj blog',
+    });
+
+    const labSection = sections.find(
+      entry => entry.type === 'section' && entry.title === 'LAB',
+    );
+    expect(labSection?.type === 'section' && labSection.websites.map(site => site.id)).toEqual([
+      'w1',
+      'w2',
+    ]);
+
+    const prodSection = sections.find(
+      entry => entry.type === 'section' && entry.title === 'PROD',
+    );
+    expect(prodSection?.type === 'section' && prodSection.websites.map(site => site.id)).toEqual([
+      'w3',
+      'w4',
+    ]);
+
+    expect(
+      sections.some(
+        entry =>
+          entry.type === 'section' &&
+          entry.websites.some(website => website.id === 'w7'),
+      ),
+    ).toBe(false);
+  });
+
+  test('assigns websites to their direct parent group only', () => {
+    const flat = flattenTreeForSelect(
+      buildWebsiteTree(
+        [
+          { id: 'g1', name: 'Group A', parentId: null },
+          { id: 'g2', name: 'Group B', parentId: null },
+        ],
+        [
+          { id: 'w1', name: 'inside A', groupId: 'g1' },
+          { id: 'w2', name: 'root site', groupId: null },
+        ],
+      ),
+    );
+
+    const sections = buildGroupedSelectSections(flat);
+
+    expect(sections).toEqual([
+      {
+        type: 'section',
+        title: 'Group A',
+        websites: [{ id: 'w1', label: 'inside A' }],
+      },
+      { type: 'website', id: 'w2', label: 'root site' },
+    ]);
   });
 });
 

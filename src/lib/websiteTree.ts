@@ -149,6 +149,84 @@ export function flattenTreeForSelect(tree: WebsiteTreeNode[], depth = 0): FlatSe
   return items;
 }
 
+export type GroupedSelectEntry =
+  | { type: 'website'; id: string; label: string }
+  | { type: 'section'; title: string; websites: { id: string; label: string }[] };
+
+export function buildGroupedSelectSections(flatItems: FlatSelectItem[]): GroupedSelectEntry[] {
+  const websites = flatItems.filter(item => item.type === 'website');
+
+  if (websites.length === 0) {
+    return [];
+  }
+
+  const groups = flatItems.filter(item => item.type === 'group');
+
+  if (groups.length === 0) {
+    return websites.map(website => ({
+      type: 'website' as const,
+      id: website.id,
+      label: website.label,
+    }));
+  }
+
+  const groupAtDepth = new Map<number, string>();
+  const entries: GroupedSelectEntry[] = [];
+  let currentSectionTitle: string | null = null;
+  let currentSectionWebsites: { id: string; label: string }[] = [];
+
+  const flushSection = () => {
+    if (currentSectionTitle && currentSectionWebsites.length > 0) {
+      entries.push({
+        type: 'section',
+        title: currentSectionTitle,
+        websites: currentSectionWebsites,
+      });
+    }
+    currentSectionTitle = null;
+    currentSectionWebsites = [];
+  };
+
+  for (const item of flatItems) {
+    if (item.type === 'group') {
+      for (const depth of [...groupAtDepth.keys()]) {
+        if (depth >= item.depth) {
+          groupAtDepth.delete(depth);
+        }
+      }
+      groupAtDepth.set(item.depth, item.label);
+      continue;
+    }
+
+    const parentDepth = item.depth - 1;
+    const parentGroup = parentDepth >= 0 ? (groupAtDepth.get(parentDepth) ?? null) : null;
+
+    if (parentGroup === null) {
+      flushSection();
+      entries.push({
+        type: 'website',
+        id: item.id,
+        label: item.label,
+      });
+      continue;
+    }
+
+    if (parentGroup !== currentSectionTitle) {
+      flushSection();
+      currentSectionTitle = parentGroup;
+    }
+
+    currentSectionWebsites.push({
+      id: item.id,
+      label: item.label,
+    });
+  }
+
+  flushSection();
+
+  return entries;
+}
+
 export function flattenGroupsForSelect(
   groups: WebsiteGroupRecord[],
   excludeGroupId?: string,
