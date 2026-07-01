@@ -101,7 +101,7 @@ export async function deleteWebsiteGroup(groupId: string) {
       data: { parentId },
     }),
     prisma.client.website.updateMany({
-      where: { groupId, deletedAt: null },
+      where: { groupId },
       data: { groupId: parentId },
     }),
     prisma.client.websiteGroup.delete({
@@ -136,6 +136,33 @@ export async function getWebsiteTreeForOwner({
   return buildWebsiteTree(groups, websites);
 }
 
+export async function getWebsiteGroupDeletionSteps(where: Prisma.WebsiteGroupWhereInput) {
+  const groups = await prisma.client.websiteGroup.findMany({
+    where,
+    select: { id: true },
+  });
+
+  if (groups.length === 0) {
+    return [];
+  }
+
+  const groupIds = groups.map(group => group.id);
+
+  return [
+    prisma.client.website.updateMany({
+      where: { groupId: { in: groupIds } },
+      data: { groupId: null },
+    }),
+    prisma.client.websiteGroup.updateMany({
+      where,
+      data: { parentId: null },
+    }),
+    prisma.client.websiteGroup.deleteMany({
+      where,
+    }),
+  ];
+}
+
 export async function deleteWebsiteGroupsForOwner({
   userId,
   teamId,
@@ -143,7 +170,14 @@ export async function deleteWebsiteGroupsForOwner({
   userId?: string | null;
   teamId?: string | null;
 }) {
-  return prisma.client.websiteGroup.deleteMany({
-    where: teamId ? { teamId } : { userId },
-  });
+  const where = teamId ? { teamId } : { userId };
+  const steps = await getWebsiteGroupDeletionSteps(where);
+
+  if (steps.length === 0) {
+    return { count: 0 };
+  }
+
+  const results = await prisma.transaction(steps);
+
+  return results[results.length - 1];
 }
