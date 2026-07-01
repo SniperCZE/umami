@@ -421,7 +421,7 @@ export const messages: Record<string, string> = {
   resetWebsiteWarning: 'message.reset-website-warning',
   deleteWebsiteWarning: 'message.delete-website-warning',
   deleteTeamWarning: 'message.delete-team-warning',
-  groupNotEmpty: 'message.group-not-empty',
+  deleteGroupWarning: 'message.delete-group-warning',
   noResultsFound: 'message.no-results-found',
   noWebsitesConfigured: 'message.no-websites-configured',
   noTeamWebsites: 'message.no-team-websites',
