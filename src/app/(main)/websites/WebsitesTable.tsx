@@ -10,10 +10,11 @@ export interface WebsitesTableProps extends DataTableProps {
   showActions?: boolean;
   allowEdit?: boolean;
   allowView?: boolean;
+  showGroupPath?: boolean;
   renderLink?: (row: any) => ReactNode;
 }
 
-export function WebsitesTable({ showActions, renderLink, ...props }: WebsitesTableProps) {
+export function WebsitesTable({ showActions, showGroupPath, renderLink, ...props }: WebsitesTableProps) {
   const { t, labels } = useMessages();
   const { renderUrl } = useNavigation();
 
@@ -23,6 +24,11 @@ export function WebsitesTable({ showActions, renderLink, ...props }: WebsitesTab
         {renderLink}
       </DataColumn>
       <DataColumn id="domain" label={<SortableLabel label={t(labels.domain)} sortKey="domain" />} />
+      {showGroupPath && (
+        <DataColumn id="groupPath" label={t(labels.groupPath)}>
+          {(row: any) => row.groupPath ?? '—'}
+        </DataColumn>
+      )}
       <DataColumn
         id="created"
         label={
