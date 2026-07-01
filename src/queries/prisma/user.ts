@@ -185,6 +185,7 @@ export async function deleteUser(userId: string) {
         where: { userId, deletedAt: null },
       }),
       client.board.deleteMany({ where: { userId } }),
+      client.websiteGroup.deleteMany({ where: { userId } }),
     ]).then(async result => {
       await invalidateRedis();
       return result;
@@ -243,6 +244,9 @@ export async function deleteUser(userId: string) {
     client.link.deleteMany({ where: ownedFilter }),
     client.pixel.deleteMany({ where: ownedFilter }),
     client.board.deleteMany({ where: ownedFilter }),
+    client.websiteGroup.deleteMany({
+      where: { OR: [{ userId }, { teamId: { in: teamIds } }] },
+    }),
     client.website.deleteMany({
       where: { id: { in: websiteIds } },
     }),
