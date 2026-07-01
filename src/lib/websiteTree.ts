@@ -118,7 +118,7 @@ export function buildWebsiteTree(
         ...website,
       }));
 
-    return [...groupNodes, ...websiteNodes].sort(compareByName);
+    return [...groupNodes, ...websiteNodes];
   }
 
   return buildLevel(null);

@@ -406,7 +406,7 @@
     "confirm-reset": "Are you sure you want to reset {target}?",
     "delete-team-warning": "Deleting a team will also delete all team websites.",
     "delete-website-warning": "All website data will be deleted.",
-    "group-not-empty": "Group must be empty before it can be deleted.",
+    "delete-group-warning": "Subgroups and websites inside this group will be moved up one level.",
     "error": "Something went wrong.",
     "empty-dashboard": "Your dashboard is empty. Click Edit to add your first component.",
     "event-log": "<b>{event}</b> on <a>{url}</a>",

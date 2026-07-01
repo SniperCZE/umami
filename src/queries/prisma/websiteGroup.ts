@@ -86,22 +86,28 @@ export async function updateWebsiteGroup(
 }
 
 export async function deleteWebsiteGroup(groupId: string) {
-  return prisma.client.websiteGroup.delete({
-    where: { id: groupId },
-  });
-}
+  const group = await getWebsiteGroup(groupId);
 
-export async function getWebsiteGroupChildCount(groupId: string) {
-  const [childGroups, websites] = await Promise.all([
-    prisma.client.websiteGroup.count({
+  if (!group) {
+    return null;
+  }
+
+  const { transaction } = prisma;
+  const parentId = group.parentId;
+
+  return transaction([
+    prisma.client.websiteGroup.updateMany({
       where: { parentId: groupId },
+      data: { parentId },
     }),
-    prisma.client.website.count({
+    prisma.client.website.updateMany({
       where: { groupId, deletedAt: null },
+      data: { groupId: parentId },
+    }),
+    prisma.client.websiteGroup.delete({
+      where: { id: groupId },
     }),
   ]);
-
-  return childGroups + websites;
 }
 
 export async function getWebsiteTreeForOwner({

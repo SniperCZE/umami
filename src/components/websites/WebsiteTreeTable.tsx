@@ -229,6 +229,7 @@ export function WebsiteTreeTable({
             <WebsiteGroupDeleteForm
               groupId={deleteGroup.id}
               groupName={deleteGroup.name}
+              hasChildren={deleteGroup.children?.length > 0}
               onSave={() => {
                 handleModified();
                 setDeleteGroup(null);
